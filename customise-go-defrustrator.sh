@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-cat go-defrustrator.user.js ./customise-include $1 > $2
+cat go-defrustrator.user.js | ./customise-include.sh $1 > $2
