@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name        Go Defrustrator
 // @namespace   http://github.com/programmiersportgruppe/go-defrustrator
-// @version     0.35
 // @description Greasemonkey script to defrustrate the ThoughtWorks Go user interface experience.
+// @version     0.36
 // @include     http://*:8153/go/*
+// @grant       none
 // @copyright   2013 Programmiersportgruppe
 // ==/UserScript==
 
