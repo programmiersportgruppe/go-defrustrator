@@ -3,7 +3,7 @@
 // @namespace   http://github.com/programmiersportgruppe/go-defrustrator
 // @downloadURL https://github.com/programmiersportgruppe/go-defrustrator/raw/master/go-defrustrator.user.js
 // @description Greasemonkey script to defrustrate the ThoughtWorks Go user interface experience.
-// @version     0.36
+// @version     0.37
 // @include     http://*:8153/go/*
 // @grant       none
 // @copyright   2013 Programmiersportgruppe
