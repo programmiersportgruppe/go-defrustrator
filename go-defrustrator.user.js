@@ -3,58 +3,86 @@
 // @namespace   http://github.com/programmiersportgruppe/go-defrustrator
 // @downloadURL https://github.com/programmiersportgruppe/go-defrustrator/raw/master/go-defrustrator.user.js
 // @description Greasemonkey script to defrustrate the ThoughtWorks Go user interface experience.
-// @version     0.37
+// @version     0.38
 // @include     http://*:8153/go/*
 // @grant       none
 // @copyright   2013 Programmiersportgruppe
 // ==/UserScript==
 
+var buildConfigPairs = [
+    ['tab/pipeline/history/*', 'admin/pipelines/*/materials'],
+    ['pipelines/*/{latest}/*/{latest}(/*)?', 'admin/pipelines/*/stages/*/settings'],
+    ['tab/build/detail/*/{latest}/*/{latest}/*', 'admin/pipelines/*/stages/*/job/*/tasks'],
+];
 
-var addConfigLink = function() {
-    var configUrl = window.location.pathname
-        .replace(RegExp('/go/tab/pipeline/history/([^/]+)$'), '/go/admin/pipelines/$1/materials')
-        .replace(RegExp('/go/pipelines/([^/]+)/[^/]+/([^/]+)/[^/]+(/pipeline)?$'), '/go/admin/pipelines/$1/stages/$2/settings')
-        .replace(RegExp('/go/tab/build/detail/([^/]+)/[^/]+/([^/]+)/[^/]+/([^/]+)$'), '/go/admin/pipelines/$1/stages/$2/job/$3/tasks');
+function deriveLink(source, target, title) {
+    var loc = window.location.pathname,
+        i = 0;
+    var modified = loc.replace(
+        RegExp('^/go/' + source.replace(/\*/g, '([^/]+)').replace(/{[a-zA-Z]+}/g, '[^/]+') + '$'),
+        '/go/' + target
+            .split('*')
+            .reduce(function (a, b) { return a + '$' + (++i) + b; })
+            .replace(/[{}]/g, '')
+            .replace(/\([^()]+\)\?/g, '')
+    );
+    return modified == loc ? null : '<a href="' + modified + '" style="margin-left: 1em; font-size: 1em">[' + title + ']</a>';
+};
 
-    if (configUrl != window.location.pathname)
+function addConfigLink() {
+    var link = buildConfigPairs.reduce(function (value, pair) {
+        return value || deriveLink(pair[0], pair[1], 'Edit Config') || deriveLink(pair[1], pair[0], 'See the Build');
+    }, null);
+
+    if (link)
         (document.getElementsByTagName("h1")[0] ||
          document.getElementsByTagName("h2")[0])
-        .appendChild(document.createElement('a')).outerHTML = '<a href="' + configUrl + '" style="margin-left: 1em; font-size: 1em">[Edit Config]</a>';
+        .appendChild(document.createElement('a')).outerHTML = link;
 };
 
-var applyRegex = function(body, pattern, change) {
-    body.innerHTML = body.innerHTML.replace(pattern, change);
-};
-
-var addColors = function(body) {
-    applyRegex(body,/\n(.*)LoadError(.*)\n/g, "\n<span style='color: red;'>$1LoadError$2</span>\n");
-    applyRegex(body,/\[go\](.*)\n/g, "<span style='color: gray;'>[go] $1</span>\n");
-    applyRegex(body,/Failures: ([1-9])(.*)\n/g, "<span style='color: red;'>Failures: $1$2</span>\n");
-    applyRegex(body,/(\[?\bERROR\b.*)\n/gi, "<span style='color: red;'>$1</span>\n");
-    applyRegex(body,/Failed tests(.*)\n/g, "<span style='color: red;'>Failed tests$1</span>\n");
-    applyRegex(body,/\[1m(.*)\[0m/g, "<b>$1</b>");
-    applyRegex(body,/Exception/g, "<b>Exception</b>");
-    applyRegex(body,/\[.*32m(.*)\[0m/g, "<span style='color: green;'>$1</span>");
-    applyRegex(body,/\[.*36m(.*)\[0m/g, "<span style='color: brown;'>$1</span>");
-    applyRegex(body,/\[.*33m(.*)\[0m/g, "<span style='color: brown;'>$1</span>");
-    applyRegex(body,/\[.*35m(.*)\[0m/g, "<span style='color: red;'>$1</span>");
-    applyRegex(body,/\[.*31m(.*)\[0m/g, "<span style='color: red;'>$1</span>");
-};
-
-
-addConfigLink();
-
-
-window.onload=function(){
-    var frame = document.getElementById("console_iframe");
-    frame.onload = function() {
-        addColors(frame.contentDocument.body);
+function addColors(element) {
+    var html = element.innerHTML;
+    function applyRegex(pattern, replacement) {
+        html = html.replace(pattern, replacement);
     };
-    frame.onload();
+
+    applyRegex(/\x1B\[(\d+);(\d+)m/g, "\x1B[$1m\x1B[$2m");
+//    applyRegex(/\n(.*?LoadError.*?)\n/g, "\n<span style='color: red;'>$1</span>\n");
+    applyRegex(/(\[go\].*?)\n/g, "<span style='color: gray;'>$1</span>\n");
+//    applyRegex(element,/(Failures: [1-9].*?)\n/g, "<span style='color: red;'>$1</span>\n");
+    applyRegex(/(\[?\bERROR\b.*?)\n/gi, "<span style='color: red;'>$1</span>\n");
+    applyRegex(/(Failed tests.*?)\n/g, "<span style='color: red;'>$1</span>\n");
+    applyRegex(/Exception/g, "<b>Exception</b>");
+
+    // ANSI escape codes
+    applyRegex(/\x1B\[1m(.*?)\x1B\[0m/g, "<span style='bold'>$1</span>\x1B[0m");
+    applyRegex(/\x1B\[31m(.*?)\x1B\[0m/g, "<span style='color: red;'>$1</span>\x1B[0m");
+    applyRegex(/\x1B\[32m(.*?)\x1B\[0m/g, "<span style='color: green;'>$1</span>\x1B[0m");
+    applyRegex(/\x1B\[33m(.*?)\x1B\[0m/g, "<span style='color: #999900;'>$1</span>\x1B[0m");
+    applyRegex(/\x1B\[34m(.*?)\x1B\[0m/g, "<span style='color: blue;'>$1</span>\x1B[0m");
+//    applyRegex(/\[.*35m(.*)\[0m/g, "<span style='color: red;'>$1</span>");
+    applyRegex(/\x1B\[36m(.*?)\x1B\[0m/g, "<span style='color: #009999;'>$1</span>\x1B[0m");
+    applyRegex(/\x1B\[41m(.*?)\x1B\[0m/g, "<span style='background-color: red;'>$1</span>\x1B[0m");
+    applyRegex(/\n[^\n]*?\x1B\[2K/g, "");
+    applyRegex(/\x1B\[0m/g, "");
+    element.innerHTML = html;
+
+    setTimeout(function () {
+        var unhandled = html.match(/[^\n]*\x1B.*?\n/g);
+        if (unhandled) {
+            console.error("There are", unhandled.length, "lines with unhandled escapes:", unhandled);
+            unhandled.forEach(function(l) {
+                console.log(l);
+            });
+        }
+    }, 0);
 };
 
-var buildoutput_pre = document.getElementById("buildoutput_pre");
-if (buildoutput_pre) {
-    addColors(buildoutput_pre);
+function coloriseOutput() {
+    var topLevelPres = document.documentElement.getElementsByTagName('body')[0].getElementsByTagName('pre');
+    for (var i = 0; i < topLevelPres.length; i++)
+        addColors(topLevelPres[i]);
 }
 
+addConfigLink();
+coloriseOutput();
