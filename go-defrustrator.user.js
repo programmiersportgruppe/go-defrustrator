@@ -3,7 +3,7 @@
 // @namespace   http://github.com/programmiersportgruppe/go-defrustrator
 // @downloadURL https://github.com/programmiersportgruppe/go-defrustrator/raw/master/go-defrustrator.user.js
 // @description Greasemonkey script to defrustrate the ThoughtWorks Go user interface experience.
-// @version     0.38
+// @version     0.39
 // @include     http://*:8153/go/*
 // @grant       none
 // @copyright   2013 Programmiersportgruppe
@@ -55,15 +55,15 @@ function addColors(element) {
     applyRegex(/Exception/g, "<b>Exception</b>");
 
     // ANSI escape codes
-    applyRegex(/\x1B\[1m(.*?)\x1B\[0m/g, "<span style='bold'>$1</span>\x1B[0m");
-    applyRegex(/\x1B\[31m(.*?)\x1B\[0m/g, "<span style='color: red;'>$1</span>\x1B[0m");
-    applyRegex(/\x1B\[32m(.*?)\x1B\[0m/g, "<span style='color: green;'>$1</span>\x1B[0m");
-    applyRegex(/\x1B\[33m(.*?)\x1B\[0m/g, "<span style='color: #999900;'>$1</span>\x1B[0m");
-    applyRegex(/\x1B\[34m(.*?)\x1B\[0m/g, "<span style='color: blue;'>$1</span>\x1B[0m");
-//    applyRegex(/\[.*35m(.*)\[0m/g, "<span style='color: red;'>$1</span>");
-    applyRegex(/\x1B\[36m(.*?)\x1B\[0m/g, "<span style='color: #009999;'>$1</span>\x1B[0m");
-    applyRegex(/\x1B\[41m(.*?)\x1B\[0m/g, "<span style='background-color: red;'>$1</span>\x1B[0m");
-    applyRegex(/\n[^\n]*?\x1B\[2K/g, "");
+    applyRegex(/\x1B\[1m([\s\S]*?)\x1B\[0m/g, "<span style='font-weight: bold'>$1</span>\x1B[0m");
+    applyRegex(/\x1B\[31m([\s\S]*?)\x1B\[0m/g, "<span style='color: red;'>$1</span>\x1B[0m");
+    applyRegex(/\x1B\[32m([\s\S]*?)\x1B\[0m/g, "<span style='color: green;'>$1</span>\x1B[0m");
+    applyRegex(/\x1B\[33m([\s\S]*?)\x1B\[0m/g, "<span style='color: #999900;'>$1</span>\x1B[0m");
+    applyRegex(/\x1B\[34m([\s\S]*?)\x1B\[0m/g, "<span style='color: blue;'>$1</span>\x1B[0m");
+//    applyRegex(/\[.*35m([\s\S]*)\[0m/g, "<span style='color: red;'>$1</span>");
+    applyRegex(/\x1B\[36m([\s\S]*?)\x1B\[0m/g, "<span style='color: #009999;'>$1</span>\x1B[0m");
+    applyRegex(/\x1B\[41m([\s\S]*?)\x1B\[0m/g, "<span style='background-color: red;'>$1</span>\x1B[0m");
+    applyRegex(/\n.*?\x1B\[2K/g, "");
     applyRegex(/\x1B\[0m/g, "");
     element.innerHTML = html;
 
