@@ -3,7 +3,7 @@
 // @namespace   http://github.com/programmiersportgruppe/go-defrustrator
 // @downloadURL https://github.com/programmiersportgruppe/go-defrustrator/raw/master/go-defrustrator.user.js
 // @description Greasemonkey script to defrustrate the ThoughtWorks Go user interface experience.
-// @version     0.40
+// @version     0.41
 // @include     http://*:8153/go/*
 // @grant       none
 // @copyright   2013 Programmiersportgruppe
@@ -79,9 +79,27 @@ function addColors(element) {
 };
 
 function coloriseOutput() {
-    var topLevelPres = document.documentElement.getElementsByTagName('body')[0].getElementsByTagName('pre');
-    for (var i = 0; i < topLevelPres.length; i++)
-        addColors(topLevelPres[i]);
+    if (document.getElementsByTagName('iframe').length) {
+        document.addEventListener('iframeupdated', function (e) {
+			var iframes = document.getElementsByTagName('iframe');
+            for (var i in iframes)
+                if (iframes[i].offsetWidth > 0 && iframes[i].offsetHeight > 0)
+		            iframes[i].style.height = e.targetHeight + 'px';
+        }, true);
+    } else {
+        var topLevelPres = document.documentElement.getElementsByTagName('body')[0].getElementsByTagName('pre'),
+            height = 25;
+        if (topLevelPres.length) {
+            for (var i = 0; i < topLevelPres.length; i++) {
+                addColors(topLevelPres[i]);
+                height += topLevelPres[i].offsetHeight;
+            }
+            var event = window.parent.document.createEvent("HTMLEvents");
+            event.initEvent("iframeupdated", true, true);
+            event.targetHeight = height;
+            window.parent.document.dispatchEvent(event);
+        }
+    }
 }
 
 addConfigLink();
