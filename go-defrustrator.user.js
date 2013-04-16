@@ -16,18 +16,18 @@ var buildConfigPairs = [
 ];
 
 function deriveLink(source, target, title) {
-    var loc = window.location.pathname,
-        i = 0;
-    var modified = loc.replace(
-        RegExp('^/go/' + source.replace(/\*/g, '([^/]+)').replace(/{[a-zA-Z]+}/g, '[^/]+') + '$'),
-        '/go/' + target
-            .split('*')
-            .reduce(function (a, b) { return a + '$' + (++i) + b; })
-            .replace(/[{}]/g, '')
-            .replace(/\([^()]+\)\?/g, '')
+    var currentLocation = window.location.pathname,
+        replaceableSegmentIndex = 0,
+        modifiedLocation = currentLocation.replace(
+	        RegExp('^/go/' + source.replace(/\*/g, '([^/]+)').replace(/\{[a-zA-Z]+\}/g, '[^/]+') + '$'),
+	        '/go/' + target
+                .split('*')
+                .reduce(function (a, b) { return a + '$' + (++replaceableSegmentIndex) + b; })
+                .replace(/[{}]/g, '')
+                .replace(/\([^()]+\)\?/g, '')
     );
-    return modified == loc ? null : '<a href="' + modified + '" style="margin-left: 1em; font-size: 1em">[' + title + ']</a>';
-};
+    return modifiedLocation == currentLocation ? null : '<a href="' + modifiedLocation + '" style="margin-left: 1em; font-size: 1em">[' + title + ']</a>';
+}
 
 function addConfigLink() {
     var link = buildConfigPairs.reduce(function (value, pair) {
@@ -44,7 +44,7 @@ function addColors(element) {
     var html = element.innerHTML;
     function applyRegex(pattern, replacement) {
         html = html.replace(pattern, replacement);
-    };
+    }
 
     applyRegex(/\x1B\[(\d+);(\d+)m/g, "\x1B[$1m\x1B[$2m");
 //    applyRegex(/\n(.*?LoadError.*?)\n/g, "\n<span style='color: red;'>$1</span>\n");
@@ -77,7 +77,7 @@ function addColors(element) {
             });
         }
     }, 0);
-};
+}
 
 function coloriseOutput() {
     if (document.getElementsByTagName('iframe').length) {
