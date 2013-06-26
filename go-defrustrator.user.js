@@ -3,7 +3,7 @@
 // @namespace   http://github.com/programmiersportgruppe/go-defrustrator
 // @downloadURL https://github.com/programmiersportgruppe/go-defrustrator/raw/master/go-defrustrator.user.js
 // @description Greasemonkey script to defrustrate the ThoughtWorks Go user interface experience.
-// @version     0.42
+// @version     0.43
 // @include     http://*:8153/go/*
 // @grant       none
 // @copyright   2013 Programmiersportgruppe
@@ -15,6 +15,16 @@ var buildConfigPairs = [
     ['tab/build/detail/*/{latest}/*/{latest}/*', 'admin/pipelines/*/stages/*/job/*/tasks'],
 ];
 
+Array.prototype.reduceProperly = function (func, accumulator) {
+    if (typeof accumulator == "undefined") {
+    	accumulator = this.shift();
+    }
+    for (var i = 0; i < this.length; i++) {
+    	accumulator = func(accumulator, this[i]);
+    }
+    return accumulator;
+}
+
 function deriveLink(source, target, title) {
     var currentLocation = window.location.pathname,
         replaceableSegmentIndex = 0,
@@ -22,7 +32,7 @@ function deriveLink(source, target, title) {
 	        RegExp('^/go/' + source.replace(/\*/g, '([^/]+)').replace(/\{[a-zA-Z]+\}/g, '[^/]+') + '$'),
 	        '/go/' + target
                 .split('*')
-                .reduce(function (a, b) { return a + '$' + (++replaceableSegmentIndex) + b; })
+                .reduceProperly(function (a, b) { return a + '$' + (++replaceableSegmentIndex) + b; })
                 .replace(/[{}]/g, '')
                 .replace(/\([^()]+\)\?/g, '')
     );
@@ -30,7 +40,7 @@ function deriveLink(source, target, title) {
 }
 
 function addConfigLink() {
-    var link = buildConfigPairs.reduce(function (value, pair) {
+    var link = buildConfigPairs.reduceProperly(function (value, pair) {
         return value || deriveLink(pair[0], pair[1], 'Edit Config') || deriveLink(pair[1], pair[0], 'See the Build');
     }, null);
 
